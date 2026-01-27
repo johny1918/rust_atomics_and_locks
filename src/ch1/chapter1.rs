@@ -1,4 +1,4 @@
-use std::{rc::Rc, sync::Arc, thread};
+use std::{cell::{Cell, RefCell}, rc::Rc, sync::Arc, thread};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -118,4 +118,45 @@ pub fn share_ownership_example_ref_counter_thread_safe() {
 
     thread::spawn(move || {dbg!(a)});
     thread::spawn(move || {dbg!(b)});
+}
+
+/*
+    Sharing reference without undefined behavior.
+    Allow to cpy the value out if T is Copy.
+    Replace value with another value as whole.
+    Only safe for single-threaded access (no concurrent access).
+*/
+
+pub fn using_cell() {
+    println!("Using cell example");
+    let a = Cell::new(1);
+    let b = Cell::new(1);
+    thread::spawn(move || {
+        for_cell(&a, &b)
+    });
+}
+
+fn for_cell(a: &Cell<i32>, b: &Cell<i32>) {
+    let before = a.get();
+    b.set(b.get() + 1);
+    let after = a.get();
+    if before != after {
+        println!("{} and {:?} and {}", before, b, after);
+    }
+}
+
+/*
+    RefCel allow to borrow content and modify it.
+    Downside is runtime cost.
+    Only safe for single-threaded access (no concurrent access).
+*/
+pub fn using_ref_cell() {
+    println!("Using RefCel example");
+    let a = RefCell::new(vec![1,2,3]);
+    for_ref_cell(&a);
+    println!("{:?}", a);
+}
+
+fn for_ref_cell(v: &RefCell<Vec<i32>>) {
+    v.borrow_mut().push(4);
 }
