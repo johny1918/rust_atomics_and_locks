@@ -6,6 +6,9 @@ use crate::ch1::chapter1::get_value_back_from_thread;
 use crate::ch1::chapter1::scoped_threads;
 use crate::ch1::chapter1::share_ownership_example_one;
 use crate::ch1::chapter1::share_ownership_example_two;
+use crate::ch1::chapter1::share_ownership_example_ref_counter;
+use crate::ch1::chapter1::share_ownership_example_ref_counter_thread_safe;
+
 
 fn main() {
     spawn_thread();
@@ -14,4 +17,6 @@ fn main() {
     scoped_threads();
     share_ownership_example_one();
     share_ownership_example_two();
+    share_ownership_example_ref_counter();
+    share_ownership_example_ref_counter_thread_safe();
 }

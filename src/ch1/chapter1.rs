@@ -1,4 +1,4 @@
-use std::thread;
+use std::{rc::Rc, sync::Arc, thread};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -71,7 +71,7 @@ pub fn scoped_threads() {
 }
 
 /*
-    Share ownership and reference counting example 1
+    Share ownership example 1
     Using static keyword
 */
 pub fn share_ownership_example_one() {
@@ -81,7 +81,7 @@ pub fn share_ownership_example_one() {
 }
 
 /*
-    Share ownership and reference example 2
+    Share ownership example 2
     Downside of leak() is that we are leaking memory, if we do it multiple times
     program will slowly run out of memory.
 */
@@ -91,4 +91,31 @@ pub fn share_ownership_example_two() {
     
     thread::spawn(move || dbg!(x));
     thread::spawn(move || dbg!(x));
+}
+
+/*
+    Shared reference counting example 1
+    Reference counting is used to RC will refer the same allocation,
+    they share ownership.
+    Not safe to share in a thread.
+*/
+pub fn share_ownership_example_ref_counter() {
+    println!("Reference counter example 1");
+    let a = Rc::new([1,2,3]);
+    let b = a.clone();
+    
+    assert_eq!(a.as_ptr(), b.as_ptr());
+}
+
+/*
+    Shared reference counting example 2
+    Reference counting using Arc, is thread safe.
+*/
+pub fn share_ownership_example_ref_counter_thread_safe() {
+    println!("Reference counter example 2");
+    let a = Arc::new([1,2,3]);
+    let b= a.clone();
+
+    thread::spawn(move || {dbg!(a)});
+    thread::spawn(move || {dbg!(b)});
 }
