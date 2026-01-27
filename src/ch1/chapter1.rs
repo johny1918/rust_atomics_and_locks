@@ -22,3 +22,15 @@ fn f() {
     let id = thread::current().id();
     println!("This thread have id: {:?}", id);
 }
+
+/*
+    Spawn a thread and move the ownership of numbers while capture the values
+*/
+pub fn capture_values() {
+    let numbers = vec![1,2,3];
+    thread::spawn(move || {
+        for n in numbers {
+            println!("{n}");
+        }
+    }).join().unwrap();
+}
