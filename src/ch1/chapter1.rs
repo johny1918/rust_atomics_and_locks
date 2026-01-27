@@ -34,3 +34,19 @@ pub fn capture_values() {
         }
     }).join().unwrap();
 }
+
+/*
+    Spawn a thread and move it, then return its value to main thread by using join()
+*/
+pub fn get_value_back_from_thread() {
+    let numbers = Vec::from_iter(0..=1000);
+    let t = thread::spawn(move || {
+        let len = numbers.len();
+        let sum = numbers.into_iter().sum::<usize>();
+        sum / len // Value returned by moved thread
+    });
+
+    let average = t.join().unwrap();
+
+    println!("average: {}", average);
+}
