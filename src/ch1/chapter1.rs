@@ -1,4 +1,4 @@
-use std::{cell::{Cell, RefCell}, rc::Rc, sync::Arc, thread};
+use std::{cell::{Cell, RefCell}, rc::Rc, sync::{Arc, Mutex}, thread};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -159,4 +159,25 @@ pub fn using_ref_cell() {
 
 fn for_ref_cell(v: &RefCell<Vec<i32>>) {
     v.borrow_mut().push(4);
+}
+
+/*
+    Using Mutex allow to share a variable to multiple threads
+    and access it and modify it using lock()
+*/
+pub fn using_mutex() {
+    println!("Using mutex example");
+    let n = Mutex::new(0);
+    thread::scope(|s| {
+        for _ in 0..10 {
+            s.spawn(|| {
+                let mut guard = n.lock().unwrap();
+                for _ in 0..100 {
+                    *guard += 1;
+                }
+            });
+        }
+    });
+
+    assert_eq!(n.into_inner().unwrap(), 1000);
 }
