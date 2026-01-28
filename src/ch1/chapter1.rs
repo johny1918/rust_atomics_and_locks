@@ -1,4 +1,4 @@
-use std::{cell::{Cell, RefCell}, rc::Rc, sync::{Arc, Mutex}, thread, time::Duration};
+use std::{cell::{Cell, RefCell}, collections::VecDeque, rc::Rc, sync::{Arc, Mutex}, thread, time::Duration};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -182,4 +182,40 @@ pub fn using_mutex() {
     });
 
     assert_eq!(n.into_inner().unwrap(), 1000);
+}
+
+/*
+    Example of using park thread and unpark
+    In this example it runs an infinite loop
+*/
+
+pub fn thread_parking_example() {
+    let queue: Mutex<VecDeque<u8>> = Mutex::new(VecDeque::new());
+    
+    //create thread scope
+    thread::scope(|s| {
+        //spawn a new thread inside scope
+        let t = s.spawn(|| {
+            // lock queue and pop item from front list
+            let item = queue.lock().unwrap().pop_front();
+            // do something with queue item
+            if let Some(item) = item {
+                println!("item: {}", item);
+            }
+            else {
+                //park the thread if list is empty/None
+                thread::park();
+            }
+        });
+
+        for i in 0.. {
+            //insert i into queue back list
+            queue.lock().unwrap().push_back(i);
+            //unpark thread
+            t.thread().unpark();
+            // delay 1s
+            thread::sleep(Duration::from_secs(1));
+        }
+
+    });
 }

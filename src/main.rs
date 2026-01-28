@@ -11,6 +11,7 @@ use crate::ch1::chapter1::share_ownership_example_ref_counter_thread_safe;
 use crate::ch1::chapter1::using_cell;
 use crate::ch1::chapter1::using_ref_cell;
 use crate::ch1::chapter1::using_mutex;
+use crate::ch1::chapter1::thread_parking_example;
 
 
 fn main() {
@@ -25,4 +26,5 @@ fn main() {
     using_cell();
     using_ref_cell();
     using_mutex();
+    thread_parking_example();
 }
