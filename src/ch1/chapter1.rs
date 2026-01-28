@@ -1,4 +1,4 @@
-use std::{cell::{Cell, RefCell}, collections::VecDeque, rc::Rc, sync::{Arc, Mutex}, thread, time::Duration};
+use std::{cell::{Cell, RefCell}, collections::VecDeque, rc::Rc, sync::{Arc, Condvar, Mutex}, thread, time::Duration};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -219,3 +219,77 @@ pub fn thread_parking_example() {
 
     });
 }
+
+
+/*
+    Example of using condition variables on threads
+   
+*/
+
+pub fn condition_variable_on_thread_example() {
+    let queue: Mutex<VecDeque<u8>> = Mutex::new(VecDeque::new());
+    let non_empty = Condvar::new();
+    
+    //create thread scope
+    thread::scope(|s| {
+        //spawn a new thread inside scope
+        s.spawn(|| {
+            loop {
+                //lock queue
+                let mut q = queue.lock().unwrap();
+                // iterate over queue items
+                let item = loop {
+                    //if queue has items, pop front
+                    if let Some(item) = q.pop_front() {
+                        break item;
+                    }
+                    else {
+                        // if queue is empty put thread to sleep, to wait
+                        q = non_empty.wait(q).unwrap();
+                    }
+                };
+                drop(q);
+                println!("item: {}", item);
+            }
+        });
+
+        for i in 0.. {
+            //insert i into queue back list
+            queue.lock().unwrap().push_back(i);
+            //notify thread(wakeup thread)
+            non_empty.notify_one();
+            // delay 1s
+            thread::sleep(Duration::from_secs(1));
+        }
+
+    });
+}
+
+/*
+    Summary of chapter 1
+        • Multiple threads can run concurrently within the same program and can be
+        spawned at any time.
+        • When the main thread ends, the entire program ends.
+        • Data races are undefined behavior, which is fully prevented (in safe code) by
+        Rust’s type system.
+        • Data that is Send can be sent to other threads, and data that is Sync can be shared
+        between threads.
+        • Regular threads might run as long as the program does, and thus can only
+        borrow 'static data such as statics and leaked allocations.
+        • Reference counting (Arc) can be used to share ownership to make sure data lives
+        as long as at least one thread is using it.
+        • Scoped threads are useful to limit the lifetime of a thread to alllow it to borrow
+        non-'static data, such as local variables.
+        • &T is a shared reference. &mut T is an exclusive reference. Regular types do not
+        allow mutation through a shared reference.
+        • Some types have interior mutability, thanks to UnsafeCell, which allows for
+        mutation through shared references.
+        • Cell and RefCell are the standard types for single-threaded interior mutability.
+        Atomics, Mutex, and RwLock are their multi-threaded equivalents.
+        • Cell and atomics only allow replacing the value as a whole, while RefCell,
+        Mutex, and RwLock allow you to mutate the value directly by dynamically
+        enforcing access rules.
+        • Thread parking can be a convenient way to wait for some condition.
+        • When a condition is about data protected by a Mutex, using a Condvar is more
+        convenient, and can be more efficient, than thread parking.
+*/

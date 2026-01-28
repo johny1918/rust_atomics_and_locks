@@ -12,6 +12,7 @@ use crate::ch1::chapter1::using_cell;
 use crate::ch1::chapter1::using_ref_cell;
 use crate::ch1::chapter1::using_mutex;
 use crate::ch1::chapter1::thread_parking_example;
+use crate::ch1::chapter1::condition_variable_on_thread_example;
 
 
 fn main() {
@@ -26,5 +27,8 @@ fn main() {
     using_cell();
     using_ref_cell();
     using_mutex();
-    thread_parking_example();
+    //commented because its an infinite loop
+    //thread_parking_example();
+    //commented because its an infinite loop
+    //condition_variable_on_thread_example();
 }
