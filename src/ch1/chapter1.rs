@@ -1,4 +1,4 @@
-use std::{cell::{Cell, RefCell}, rc::Rc, sync::{Arc, Mutex}, thread};
+use std::{cell::{Cell, RefCell}, rc::Rc, sync::{Arc, Mutex}, thread, time::Duration};
 
 static X:[i32; 3] = [1,2,3];
 
@@ -175,6 +175,8 @@ pub fn using_mutex() {
                 for _ in 0..100 {
                     *guard += 1;
                 }
+                drop(guard); // drop the guard before sleep, all threads run in parallel.
+                thread::sleep(Duration::from_secs(1));
             });
         }
     });
