@@ -2,9 +2,12 @@ pub mod chapter_two;
 
 use chapter_two::example_atomic;
 use chapter_two::example_atomic_show_progress;
+use chapter_two::example_atomic_syncronization_using_park;
 
 pub fn chapter_two_example_container() {
     //commenting because its endless loop waiting for user input
     //example_atomic();
-    example_atomic_show_progress();
+    //commenting because its taking couple of seconds to execute
+    //example_atomic_show_progress();
+    example_atomic_syncronization_using_park();
 }

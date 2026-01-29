@@ -68,3 +68,32 @@ pub fn example_atomic_show_progress() {
 
     println!("Done!");
 }
+
+
+/*
+    Example of atomic operation with thread park() and unpark()
+    This time main thread gets unpark() on every update of i
+*/
+pub fn example_atomic_syncronization_using_park() {
+    let status = AtomicUsize::new(0);
+
+    let main_thread = thread::current();
+
+    thread::scope(|s| {
+        s.spawn(|| {
+            for i in 0..100 {
+                thread::sleep(Duration::from_millis(100));
+                status.store(i+1, Relaxed);
+                main_thread.unpark();
+            }
+        });
+        
+        loop {
+            let n = status.load(Relaxed);
+            if n == 100 { break ;}
+            println!("Working.. {n}/100 done");
+            thread::park_timeout(Duration::from_secs(1));
+        }
+    });
+    println!("Done");
+}
