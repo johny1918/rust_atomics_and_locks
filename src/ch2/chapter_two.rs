@@ -1,4 +1,4 @@
-use std::{sync::atomic::{AtomicBool, AtomicUsize, Ordering::Relaxed}, thread, time::Duration};
+use std::{sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering::Relaxed}, thread, time::{Duration, Instant}};
 
 
 /*
@@ -128,4 +128,56 @@ pub fn example_of_fetch_add_from_multiple_threads() {
         }
     });
     println!("Done")
+}
+
+/*
+    Example of atomic operations with 
+    fetch_add - used to add value to atomic value
+    fetch_max - used to determin max time from atomic value
+*/
+pub fn example_atomic_operations_total_and_max_time() {
+    let status = &AtomicUsize::new(0);
+    let total_time = &AtomicU64::new(0);
+    let max_time = &AtomicU64::new(0);
+
+    //create thread scope
+    thread::scope(|s| {
+        for t in 0..4 {
+            //spawn 4 copy threads
+            s.spawn(move || {
+                for i in 0..25 {
+                    //get time
+                    let start = Instant::now();
+                    thread::sleep(Duration::from_millis(t + 300 + i));
+                    //get elapsed time since start
+                    let time_taken = start.elapsed().as_micros() as u64;
+                    //add 1 to atomic value
+                    status.fetch_add(1, Relaxed);
+                    // add time taken to previous time_taken value
+                    total_time.fetch_add(time_taken, Relaxed);
+                    // get max value from time taken
+                    max_time.fetch_max(time_taken, Relaxed);
+                }
+            });
+        }
+
+        loop {
+            let total_time = Duration::from_micros(total_time.load(Relaxed));
+            let max_time = Duration::from_micros(max_time.load(Relaxed));
+            let n = status.load(Relaxed);
+            if n == 100 {break ;}
+            if n == 0 {
+                println!("Working.. nothing done yet.");
+            }
+            else {
+                println!(
+                    "Working.. {n}/100 done, {:?} average, {:?} peak",
+                    total_time / n as u32,
+                    max_time
+                );
+            }
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+    println!("Done");
 }
