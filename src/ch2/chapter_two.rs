@@ -181,3 +181,62 @@ pub fn example_atomic_operations_total_and_max_time() {
     });
     println!("Done");
 }
+
+/*
+    Example of using compare_exchange on atomic operations
+*/
+fn increment(a: &AtomicU64) {
+    let mut current = a.load(Relaxed);
+
+    loop {
+        let new = current + 1;
+        match a.compare_exchange(current, new, Relaxed, Relaxed) {
+            Ok(_) => return,
+            Err(v) => current = v,
+        }
+    }
+}
+
+/*
+    Example showing how to generate a raondomly key thats is 
+    generated just one time per run of program.
+    This is known as lazy one-time initialization
+ */
+fn get_key() -> u64 {
+    static KEY: AtomicU64 = AtomicU64::new(0);
+    let key = KEY.load(Relaxed);
+    if key == 0 {
+        let new_key = 1; // here we generate a new key
+        match KEY.compare_exchange(0, new_key, Relaxed, Relaxed) {
+            Ok(_) => new_key,
+            Err(k) => k,
+        }
+    }
+    else {
+        key
+    }
+}
+
+
+
+
+/*
+    Summary of chapter 2
+        • Atomic operations are indivisable; they have either fully completed, or they
+        haven’t happened yet.
+        • Atomic operations in Rust are done through the atomic types in
+        std::sync::atomic, such as AtomicI32.
+        • Not all atomic types are available on all platforms.
+        • The relative ordering of atomic operations is tricky when multiple variables are
+        involved. More in Chapter 3.
+        • Simple loads and stores are nice for very basic inter-thread communication, like
+        stop flags and status reporting.
+        • Lazy initialization can be done as a race, without causing a data race.
+        • Fetch-and-modify operations allow for a small set of basic atomic modifications
+        that are especially useful when multiple threads are modifying the same atomic
+        variable.
+        • Atomic addition and subtraction silently wrap around on overflow.
+        • Compare-and-exchange operations are the most flexible and general, and a
+        building block for making any other atomic operation.
+        • A weak compare-and-exchange operation can be slightly more efficient.
+*/
