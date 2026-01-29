@@ -97,3 +97,35 @@ pub fn example_atomic_syncronization_using_park() {
     });
     println!("Done");
 }
+
+/*
+    Example of reporting progress from multiple threads
+    using fetch_add on atomic values.
+*/
+pub fn example_of_fetch_add_from_multiple_threads() {
+    let status = &AtomicUsize::new(0);
+
+    //create thread scope
+    thread::scope(|s| {
+        //spawn 4 threads
+        for t in 0..4 {
+            //move threads
+            s.spawn(move || {
+                for i in 0..25 {
+                    println!("thread {} (id {:?}) works", t, thread::current().id());
+                    thread::sleep(Duration::from_millis(t * 100 + i));
+                    //add 1 to status atomic
+                    status.fetch_add(1, Relaxed);
+                }
+            });
+        }
+
+        loop {
+            let n = status.load(Relaxed);
+            if n == 100 {break ;}
+            println!("Working.. {n}/100 done");
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+    println!("Done")
+}
