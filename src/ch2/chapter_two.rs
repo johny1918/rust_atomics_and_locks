@@ -1,6 +1,11 @@
-use std::{sync::atomic::{AtomicBool, Ordering::Relaxed}, thread, time::Duration};
+use std::{sync::atomic::{AtomicBool, AtomicUsize, Ordering::Relaxed}, thread, time::Duration};
 
-pub fn example_stop_flag() {
+
+/*
+    Example of using atomic operations, this example shows
+    use of AtomicBool and store and load
+*/
+pub fn example_atomic() {
     static STOP: AtomicBool = AtomicBool::new(false);
     
     // spawn a thread that will change STOP value after 2s
@@ -31,4 +36,35 @@ pub fn example_stop_flag() {
     STOP.store(true,Relaxed);
     background_thread.join().unwrap();
 
+}
+
+/*
+    This example show use of AtomicUsize where two threads runs
+    concurrently showing progress of first thread.
+*/
+pub fn example_atomic_show_progress() {
+    let status = AtomicUsize::new(0);
+    //create thread scope and run the main loop inside it so both run concurrently
+    thread::scope(|s| {
+        //spawn thread and store value of i + 1
+        s.spawn(|| {
+            for i in 0..100 {
+                println!("i = {}", i);
+                thread::sleep(Duration::from_millis(400));
+                status.store(i + 1, Relaxed);
+            }
+        });
+
+        //main thread shows status updates, every second
+        loop {
+            let n = status.load(Relaxed);
+            if n == 100 {
+                break;
+            }
+            println!("Working.. {}/100 done", n);
+            thread::sleep(Duration::from_millis(800));
+        }
+    });
+
+    println!("Done");
 }
