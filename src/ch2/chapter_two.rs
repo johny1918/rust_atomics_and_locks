@@ -66,5 +66,5 @@ pub fn example_atomic_show_progress() {
         }
     });
 
-    println!("Done");
+    println!("Done!");
 }
